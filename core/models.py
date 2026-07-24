@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+
 class Cliente(models.Model):
     nome = models.CharField('Nome', max_length=200)
     cpf_cnpj = models.CharField('CPF/CNPJ', max_length=18, unique=True)
@@ -14,6 +15,7 @@ class Cliente(models.Model):
     cep = models.CharField('CEP', max_length=9)
     observacoes = models.TextField('Observações', blank=True)
     ativo = models.BooleanField('Ativo', default=True)
+    senha = models.CharField('Senha', max_length=128, default='123456')  # ← NOVO CAMPO
     data_cadastro = models.DateTimeField('Data de Cadastro', auto_now_add=True)
     
     class Meta:
@@ -23,6 +25,34 @@ class Cliente(models.Model):
     
     def __str__(self):
         return f"{self.nome} - {self.cpf_cnpj}"
+
+
+class Notificacao(models.Model):
+    """Notificações do sistema"""
+    
+    TIPO_CHOICES = [
+        ('nova_os', 'Nova OS'),
+        ('status_os', 'Status Alterado'),
+        ('os_atribuida', 'OS Atribuída'),
+        ('info', 'Informação'),
+    ]
+    
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificacoes')
+    tipo = models.CharField('Tipo', max_length=20, choices=TIPO_CHOICES)
+    titulo = models.CharField('Título', max_length=200)
+    mensagem = models.TextField('Mensagem')
+    link = models.CharField('Link', max_length=200, blank=True)
+    lida = models.BooleanField('Lida', default=False)
+    data_criacao = models.DateTimeField('Data', auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-data_criacao']
+        verbose_name = 'Notificação'
+        verbose_name_plural = 'Notificações'
+    
+    def __str__(self):
+        return f"{self.titulo} - {self.usuario.username}"
+
 
 class OrdemServico(models.Model):
     STATUS_CHOICES = [
@@ -87,30 +117,3 @@ class OrdemServico(models.Model):
             self.data_conclusao = timezone.now()
         
         super().save(*args, **kwargs)
-
-# 👇 NOVA CLASSE AQUI
-class Notificacao(models.Model):
-    """Notificações do sistema"""
-    
-    TIPO_CHOICES = [
-        ('nova_os', 'Nova OS'),
-        ('status_os', 'Status Alterado'),
-        ('os_atribuida', 'OS Atribuída'),
-        ('info', 'Informação'),
-    ]
-    
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificacoes')
-    tipo = models.CharField('Tipo', max_length=20, choices=TIPO_CHOICES)
-    titulo = models.CharField('Título', max_length=200)
-    mensagem = models.TextField('Mensagem')
-    link = models.CharField('Link', max_length=200, blank=True)
-    lida = models.BooleanField('Lida', default=False)
-    data_criacao = models.DateTimeField('Data', auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-data_criacao']
-        verbose_name = 'Notificação'
-        verbose_name_plural = 'Notificações'
-    
-    def __str__(self):
-        return f"{self.titulo} - {self.usuario.username}"

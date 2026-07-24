@@ -43,6 +43,12 @@
                             <i class="bi bi-people"></i> Clientes
                         </a>
                     </li>
+                    <!-- BOTÃO ÁREA DO CLIENTE -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cliente_login' %}" target="_blank">
+                            <i class="bi bi-person-check"></i> Área do Cliente
+                        </a>
+                    </li>
                 </ul>
                 
                 <ul class="navbar-nav">
@@ -129,10 +135,6 @@
         // Atualiza contador de notificações
         document.addEventListener('DOMContentLoaded', function() {
             const notifCount = document.getElementById('notif-count');
-            const notificacoes = document.querySelectorAll('#notifDropdown + .dropdown-menu .dropdown-item');
-            let naoLidas = 0;
-            
-            // Conta notificações não lidas (procura elementos com estilo negrito)
             document.querySelectorAll('#notifDropdown + .dropdown-menu .dropdown-item').forEach(function(item) {
                 if (item.style.fontWeight === 'bold' || item.classList.contains('fw-bold')) {
                     naoLidas++;

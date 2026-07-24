@@ -376,3 +376,99 @@ def notificacao_marcar_todas(request):
     request.user.notificacoes.filter(lida=False).update(lida=True)
     messages.success(request, 'Todas notificações marcadas como lidas!')
     return redirect('notificacao_lista')
+
+
+# ==================== ÁREA DO CLIENTE ====================
+
+def cliente_login(request):
+    """Login específico para clientes"""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        senha = request.POST.get('senha')
+        
+        try:
+            cliente = Cliente.objects.get(email=email, senha=senha, ativo=True)
+            # Salva o cliente na sessão
+            request.session['cliente_id'] = cliente.pk
+            request.session['cliente_nome'] = cliente.nome
+            messages.success(request, f'Bem-vindo, {cliente.nome}!')
+            return redirect('cliente_area')
+        except Cliente.DoesNotExist:
+            messages.error(request, 'Email ou senha inválidos.')
+    
+    return render(request, 'clientes/login.html')
+
+
+def cliente_logout(request):
+    """Logout do cliente"""
+    request.session.pop('cliente_id', None)
+    request.session.pop('cliente_nome', None)
+    messages.success(request, 'Você saiu da área do cliente.')
+    return redirect('cliente_login')
+
+
+def cliente_area(request):
+    """Área do cliente - vê suas OS"""
+    cliente_id = request.session.get('cliente_id')
+    
+    if not cliente_id:
+        messages.error(request, 'Faça login para acessar sua área.')
+        return redirect('cliente_login')
+    
+    cliente = get_object_or_404(Cliente, pk=cliente_id)
+    ordens = cliente.ordens.all().order_by('-data_abertura')
+    
+    return render(request, 'clientes/area.html', {
+        'cliente': cliente,
+        'ordens': ordens,
+    })
+
+
+def cliente_os_detalhe(request, pk):
+    """Cliente vê detalhes de uma OS específica"""
+    cliente_id = request.session.get('cliente_id')
+    
+    if not cliente_id:
+        messages.error(request, 'Faça login para acessar.')
+        return redirect('cliente_login')
+    
+    ordem = get_object_or_404(OrdemServico, pk=pk, cliente_id=cliente_id)
+    
+    return render(request, 'clientes/os_detalhe.html', {'ordem': ordem})
+
+
+def cliente_criar_os(request):
+    """Cliente cria sua própria OS"""
+    cliente_id = request.session.get('cliente_id')
+    
+    if not cliente_id:
+        messages.error(request, 'Faça login para acessar.')
+        return redirect('cliente_login')
+    
+    cliente = get_object_or_404(Cliente, pk=cliente_id)
+    
+    if request.method == 'POST':
+        ordem = OrdemServico(
+            cliente=cliente,
+            descricao_problema=request.POST.get('descricao_problema'),
+            prioridade=request.POST.get('prioridade', 'media'),
+            observacoes=request.POST.get('observacoes', ''),
+            criado_por=User.objects.first(),  # Admin como criador
+        )
+        ordem.save()
+        
+        # Notifica admins
+        admins = User.objects.filter(is_staff=True)
+        for admin in admins:
+            criar_notificacao(
+                usuario=admin,
+                tipo='nova_os',
+                titulo=f'Nova OS do Cliente: {ordem.numero}',
+                mensagem=f'{cliente.nome} abriu uma nova OS: {ordem.descricao_problema[:100]}',
+                link=f'/ordens/{ordem.pk}/'
+            )
+        
+        messages.success(request, f'OS {ordem.numero} criada com sucesso!')
+        return redirect('cliente_area')
+    
+    return render(request, 'clientes/criar_os.html', {'cliente': cliente})
