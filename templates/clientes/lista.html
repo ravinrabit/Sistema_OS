@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Clientes - Sistema OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-people"></i> Clientes</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{% url 'cliente_criar' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Novo Cliente
+        </a>
+    </div>
+</div>
+
+<!-- Busca -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="busca" 
+                           placeholder="Buscar por nome, CPF/CNPJ ou email..." 
+                           value="{{ busca|default:'' }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Clientes -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>CPF/CNPJ</th>
+                        <th>Telefone</th>
+                        <th>Email</th>
+                        <th>Cidade</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'cliente_detalhe' cliente.pk %}">
+                                {{ cliente.nome }}
+                            </a>
+                        </td>
+                        <td>{{ cliente.cpf_cnpj }}</td>
+                        <td>{{ cliente.telefone }}</td>
+                        <td>{{ cliente.email }}</td>
+                        <td>{{ cliente.cidade }}/{{ cliente.estado }}</td>
+                        <td>
+                            <a href="{% url 'cliente_detalhe' cliente.pk %}" 
+                               class="btn btn-sm btn-info" title="Ver">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'cliente_editar' cliente.pk %}" 
+                               class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <i class="bi bi-people" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="mt-2 text-muted">Nenhum cliente encontrado</p>
+                            <a href="{% url 'cliente_criar' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i> Cadastrar Primeiro Cliente
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

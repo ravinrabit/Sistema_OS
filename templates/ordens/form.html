@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block titulo %}{{ titulo }} - Sistema OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-{% if ordem %}pencil{% else %}plus-circle{% endif %}"></i> {{ titulo }}</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{% url 'ordem_lista' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="row g-3">
+                <!-- Cliente -->
+                <div class="col-md-6">
+                    <label for="cliente" class="form-label">Cliente *</label>
+                    <select class="form-select" id="cliente" name="cliente" required>
+                        <option value="">Selecione um cliente...</option>
+                        {% for cliente in clientes %}
+                        <option value="{{ cliente.pk }}" 
+                            {% if ordem.cliente.pk == cliente.pk %}selected{% endif %}>
+                            {{ cliente.nome }} - {{ cliente.cpf_cnpj }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Técnico -->
+                <div class="col-md-3">
+                    <label for="tecnico" class="form-label">Técnico</label>
+                    <select class="form-select" id="tecnico" name="tecnico">
+                        <option value="">Selecione um técnico...</option>
+                        {% for tecnico in tecnicos %}
+                        <option value="{{ tecnico.pk }}"
+                            {% if ordem.tecnico.pk == tecnico.pk %}selected{% endif %}>
+                            {{ tecnico.get_full_name|default:tecnico.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Prioridade -->
+                <div class="col-md-3">
+                    <label for="prioridade" class="form-label">Prioridade</label>
+                    <select class="form-select" id="prioridade" name="prioridade">
+                        <option value="baixa" {% if ordem.prioridade == 'baixa' %}selected{% endif %}>Baixa</option>
+                        <option value="media" {% if ordem.prioridade == 'media' %}selected{% endif %}>Média</option>
+                        <option value="alta" {% if ordem.prioridade == 'alta' %}selected{% endif %}>Alta</option>
+                        <option value="urgente" {% if ordem.prioridade == 'urgente' %}selected{% endif %}>Urgente</option>
+                    </select>
+                </div>
+                
+                <!-- Status (só aparece na edição) -->
+                {% if ordem %}
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="aberta" {% if ordem.status == 'aberta' %}selected{% endif %}>Aberta</option>
+                        <option value="andamento" {% if ordem.status == 'andamento' %}selected{% endif %}>Em Andamento</option>
+                        <option value="concluida" {% if ordem.status == 'concluida' %}selected{% endif %}>Concluída</option>
+                        <option value="cancelada" {% if ordem.status == 'cancelada' %}selected{% endif %}>Cancelada</option>
+                    </select>
+                </div>
+                {% endif %}
+                
+                <!-- Descrição do Problema -->
+                <div class="col-12">
+                    <label for="descricao_problema" class="form-label">Descrição do Problema *</label>
+                    <textarea class="form-control" id="descricao_problema" name="descricao_problema" 
+                              rows="4" required>{{ ordem.descricao_problema|default:'' }}</textarea>
+                </div>
+                
+                <!-- Solução (só aparece na edição) -->
+                {% if ordem %}
+                <div class="col-12">
+                    <label for="solucao" class="form-label">Solução Realizada</label>
+                    <textarea class="form-control" id="solucao" name="solucao" 
+                              rows="4">{{ ordem.solucao|default:'' }}</textarea>
+                </div>
+                {% endif %}
+                
+                <!-- Valores -->
+                <div class="col-md-4">
+                    <label for="valor_servico" class="form-label">Valor do Serviço (R$)</label>
+                    <input type="number" class="form-control" id="valor_servico" name="valor_servico" 
+                           step="0.01" value="{{ ordem.valor_servico|default:'0' }}">
+                </div>
+                
+                <div class="col-md-4">
+                    <label for="valor_pecas" class="form-label">Valor das Peças (R$)</label>
+                    <input type="number" class="form-control" id="valor_pecas" name="valor_pecas" 
+                           step="0.01" value="{{ ordem.valor_pecas|default:'0' }}">
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">Valor Total (R$)</label>
+                    <input type="text" class="form-control" value="{{ ordem.valor_total|default:'0.00' }}" readonly>
+                </div>
+                
+                <!-- Observações -->
+                <div class="col-12">
+                    <label for="observacoes" class="form-label">Observações Internas</label>
+                    <textarea class="form-control" id="observacoes" name="observacoes" 
+                              rows="3">{{ ordem.observacoes|default:'' }}</textarea>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Salvar
+                </button>
+                <a href="{% url 'ordem_lista' %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

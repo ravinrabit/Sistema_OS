@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block titulo %}OS {{ ordem.numero }} - Sistema OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-clipboard-check"></i> OS {{ ordem.numero }}</h2>
+    </div>
+    <div class="col text-end">
+        <div class="btn-group">
+            <a href="{% url 'ordem_editar' ordem.pk %}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <a href="{% url 'ordem_excluir' ordem.pk %}" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Excluir
+            </a>
+            <a href="{% url 'ordem_lista' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informações Principais -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Detalhes da OS</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Cliente:</strong> {{ ordem.cliente.nome }}</p>
+                        <p><strong>Técnico:</strong> {{ ordem.tecnico.get_full_name|default:'Não atribuído' }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{% if ordem.status == 'concluida' %}success{% elif ordem.status == 'andamento' %}warning{% elif ordem.status == 'aberta' %}primary{% else %}secondary{% endif %}">
+                                {{ ordem.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Prioridade:</strong> 
+                            <span class="badge bg-{% if ordem.prioridade == 'urgente' %}danger{% elif ordem.prioridade == 'alta' %}warning{% else %}info{% endif %}">
+                                {{ ordem.get_prioridade_display }}
+                            </span>
+                        </p>
+                        <p><strong>Abertura:</strong> {{ ordem.data_abertura|date:"d/m/Y H:i" }}</p>
+                        {% if ordem.data_conclusao %}
+                        <p><strong>Conclusão:</strong> {{ ordem.data_conclusao|date:"d/m/Y H:i" }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Descrições -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-text"></i> Descrições</h5>
+            </div>
+            <div class="card-body">
+                <h6>Problema:</h6>
+                <p>{{ ordem.descricao_problema }}</p>
+                
+                {% if ordem.solucao %}
+                <h6>Solução:</h6>
+                <p>{{ ordem.solucao }}</p>
+                {% endif %}
+                
+                {% if ordem.observacoes %}
+                <h6>Observações Internas:</h6>
+                <p>{{ ordem.observacoes }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Valores -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-cash"></i> Valores</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Serviço:</strong> R$ {{ ordem.valor_servico|floatformat:2 }}</p>
+                <p><strong>Peças:</strong> R$ {{ ordem.valor_pecas|floatformat:2 }}</p>
+                <hr>
+                <h4 class="text-success">Total: R$ {{ ordem.valor_total|floatformat:2 }}</h4>
+            </div>
+        </div>
+        
+        <!-- Ações Rápidas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if ordem.status != 'andamento' and ordem.status != 'cancelada' and ordem.status != 'concluida' %}
+                    <a href="{% url 'ordem_mudar_status' ordem.pk 'andamento' %}" class="btn btn-warning">
+                        <i class="bi bi-play"></i> Iniciar
+                    </a>
+                    {% endif %}
+                    
+                    {% if ordem.status != 'concluida' and ordem.status != 'cancelada' %}
+                    <a href="{% url 'ordem_mudar_status' ordem.pk 'concluida' %}" class="btn btn-success">
+                        <i class="bi bi-check-lg"></i> Concluir
+                    </a>
+                    {% endif %}
+                    
+                    {% if ordem.status != 'cancelada' %}
+                    <a href="{% url 'ordem_mudar_status' ordem.pk 'cancelada' %}" class="btn btn-danger">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Informações do Cliente -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person"></i> Cliente</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ ordem.cliente.nome }}</strong></p>
+                <p><i class="bi bi-telephone"></i> {{ ordem.cliente.telefone }}</p>
+                <p><i class="bi bi-envelope"></i> {{ ordem.cliente.email }}</p>
+                <a href="{% url 'cliente_detalhe' ordem.cliente.pk %}" class="btn btn-sm btn-info">
+                    Ver Cliente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

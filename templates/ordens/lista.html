@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Ordens de Serviço - Sistema OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-clipboard-check"></i> Ordens de Serviço</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{% url 'ordem_criar' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Nova OS
+        </a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="busca" 
+                           placeholder="Buscar OS ou cliente..." 
+                           value="{{ busca|default:'' }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">Todos os Status</option>
+                    <option value="aberta" {% if status_atual == 'aberta' %}selected{% endif %}>Aberta</option>
+                    <option value="andamento" {% if status_atual == 'andamento' %}selected{% endif %}>Em Andamento</option>
+                    <option value="concluida" {% if status_atual == 'concluida' %}selected{% endif %}>Concluída</option>
+                    <option value="cancelada" {% if status_atual == 'cancelada' %}selected{% endif %}>Cancelada</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de OS -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nº OS</th>
+                        <th>Cliente</th>
+                        <th>Problema</th>
+                        <th>Status</th>
+                        <th>Prioridade</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for os in ordens %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'ordem_detalhe' os.pk %}">
+                                <strong>{{ os.numero }}</strong>
+                            </a>
+                        </td>
+                        <td>{{ os.cliente.nome }}</td>
+                        <td>{{ os.descricao_problema|truncatechars:50 }}</td>
+                        <td>
+                            <span class="badge bg-{% if os.status == 'concluida' %}success{% elif os.status == 'andamento' %}warning{% elif os.status == 'aberta' %}primary{% else %}secondary{% endif %}">
+                                {{ os.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if os.prioridade == 'urgente' %}danger{% elif os.prioridade == 'alta' %}warning{% elif os.prioridade == 'media' %}info{% else %}secondary{% endif %}">
+                                {{ os.get_prioridade_display }}
+                            </span>
+                        </td>
+                        <td>R$ {{ os.valor_total }}</td>
+                        <td>{{ os.data_abertura|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'ordem_detalhe' os.pk %}" class="btn btn-sm btn-info" title="Ver">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'ordem_editar' os.pk %}" class="btn btn-sm btn-warning" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="bi bi-clipboard-x" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="mt-2 text-muted">Nenhuma OS encontrada</p>
+                            <a href="{% url 'ordem_criar' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i> Criar Primeira OS
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
